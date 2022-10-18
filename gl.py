@@ -18,26 +18,26 @@ def dwrd(x):
 # colors #
 def color(r,g,b):
     # number between 0 and 255 for each input
-    return bytes([int(b * 255), int(g * 255), int(r * 255)])
+    return bytes([b, g, r])
 Black = color(0,0,0)
 White = color(1,1,1)
 
 
 # coordenadas baricentricas #
 def coordenadasbaricentricas(A,B,C,k):
-    areabc = (B.y - C.y) * (k.x - C.x) + (C.x - B.x) * (k.y - C.y)
-    areaac = (C.y - A.y) * (k.x - C.x) + (A.x - C.x) * (k.y - C.y)
-    areaabc = (B.y - C.y) * (A.x - C.x) + (C.x - B.x) * (A.y - C.y)
+    lasbaricentricas = glMatematica.ProdCruz(
+        V3(C.x - A.x, B.x - A.x, A.x - k.x), 
+        V3(C.y - A.y, B.y - A.y, A.y - k.y)
+    )
 
-    try:
-        #puntos u v w de las coordenadas baricentricas
-        u = areabc / areaabc
-        v = areaac / areaabc
-        w = 1 - u - v
-    except:
+    if abs(lasbaricentricas[2]) < 1:
         return -1, -1, -1
-    else:
-        return u, v, w
+
+    return (
+        1 - (lasbaricentricas[0] + lasbaricentricas[1]) / lasbaricentricas[2], 
+        lasbaricentricas[1] / lasbaricentricas[2], 
+        lasbaricentricas[0] / lasbaricentricas[2]
+    )
 
 V2 = namedtuple('Point2', ['x', 'y'])
 V3 = namedtuple('Point3', ['x', 'y', 'z'])
@@ -71,8 +71,8 @@ class Render(object):
             [self.colorBack for x in range (self.width)] for y in range (self.height)
         ]
 
-        self.zBuffer = [
-            [float('inf') for y in range(self.height)] for x in range(self.width)
+        self.zbuffer = [
+            [-float('inf') for x in range(self.width)] for y in range(self.height)
         ]
     
     def glClearColor(self, r, g, b):
@@ -103,12 +103,11 @@ class Render(object):
                     self.pixels[x][y] = self.curr_color 
 
     def glVertex(self, ingx, ingy, optColor=None):
-        if ingx > 1 or ingx < -1 or ingy > 1 or ingy < -1:
-            self.pixels[ingx][ingy] = self.curr_color
-        else:
-            x = int((ingx + 1) * (self.VPW / 2) + self.viewX)
-            y = int((ingy + 1) * (self.VPH / 2) + self.viewY)
-            self.pixels[x][y] = optColor or self.curr_color
+        try:
+            self.pixels[ingy][ingx] = optColor or self.curr_color
+        except:
+        # To avoid index out of range exceptions
+            pass
 
     def glLine(self,x0,y0,x1,y1, optColor=None):
         x0,y0 = y0,x0
@@ -209,59 +208,31 @@ class Render(object):
                 if self.EvenOdd(y,x,polygon):
                     self.glVertex(x,y,optColor)
 
-    def flatbottom(self,A,B,C,clr=None):
-        " basado en explicación por Ing. Carlos "
-        try:
-            mBA = (B.x - A.x) / (B.y - A.y)
-            mCA = (C.x - A.x) / (C.y - A.y)
-        except:
-            pass
-        else:
-            x0 = B.x
-            x1 = C.x
-            for y in range(int(B.y), int(A.y)):
-                self.glLine(V2(x0, y), V2(x1, y), clr)
-                x0 += mBA
-                x1 += mCA
+    def glTransform(self, vertex, translate=(0, 0, 0), scale=(1, 1, 1)):
+    # returns a vertex 3, translated and transformed
+        return V3(
+        round((vertex[0] + translate[0]) * scale[0]),
+        round((vertex[1] + translate[1]) * scale[1]),
+        round((vertex[2] + translate[2]) * scale[2])
+        )
 
-    def flatTop(self,A, B, C, clr=None):
-        " basado en explicación por Ing. Carlos "
-        try:
-            mCA = (C.x - A.x) / (C.y - A.y)
-            mCB = (C.x - B.x) / (C.y - B.y)
-        except:
-            pass
-        else:
-            x0 = A.x
-            x1 = B.x
-            for y in range(int(A.y), int(C.y), -1):
-                self.glLine(V2(x0, y), V2(x1, y), clr)
-                x0 -= mCA
-                x1 -= mCB
 
     def glTriangle(self, A,B,C, clr=None):
-        " basado en explicación por Ing. Carlos "
-        if A.y < B.y:
-            A, B = B, A
-        if A.y < C.y:
-            A, C = C, A
-        if B.y < C.y:
-            B, C = C, B
+        minimo, maximo = glMatematica.Bounding(A, B, C)
 
-        self.glLine(A, B, clr)
-        self.glLine(B, C, clr)
-        self.glLine(C, A, clr)
-
-        if B.y == C.y:
-            #Cuando el triangulo tiene flat bottom
-            self.flatBottom(A, B, C)
-        elif A.y == B.y:
-            #Cuando el triangulo tiene flat top
-            self.flatTop(A, B, C)
-        else:
-            temp = V2(A.x + ((B.y - A.y) / (C.y - A.y)) * (C.x - A.x), B.y)
-            self.flatBottom(A, B, temp)
-            self.flatTop(B, temp, C)
+        for x in range(minimo.x, maximo.x + 1):
+            for y in range(minimo.y, maximo.y + 1):
+                w, v, u = coordenadasbaricentricas(A, B, C, V2(x, y))
+                if w < 0 or v < 0 or u < 0:  # 0 is actually a valid value! (it is on the edge)
+                    continue
+            
+                z = A.z * w + B.z * v + C.z * u
+                
+                print(' a ver beibi ---> ', z)
+                print(' a ver prro ---> ', self.zbuffer[x][y])
+                if z > self.zbuffer[x][y]:
+                    self.glVertex(x, y, clr)
+                    self.zbuffer[x][y] = z
 
     
     def glTriangleShading(self, A,B,C, cord=(), normal=(), clr=None):
@@ -295,22 +266,50 @@ class Render(object):
 
 
 
-    def LoadModel(self,filename,translation,scale,cord):
-        objs = Obj(filename)
-        for x in objs.faces:
+    def LoadModel(self,filename,translation=(0, 0, 0),scale=(1, 1, 1)):
+        model = Obj(filename)
+        luz = V3(0,0,1)
+        for x in model.faces:
             #cada cara
-            temp_vertices_cara = [] #los vertices que conforman la cara
-            for y in x:
-                #cada coordenada dentro de la cara seleccionada
-                temp_vertice_dibujar = [
-                    int(round((objs.vertices[y[0] - 1])[cord[0]] * scale[0]) + translation[0]),
-                    int(round((objs.vertices[y[0] - 1])[cord[1]] * scale[1]) + translation[1])
-                ]
-                for temp in temp_vertice_dibujar:
-                    temp = int(temp)
-                temp_vertices_cara.append(temp_vertice_dibujar)
-            self.glDrawFig(temp_vertices_cara)
+            temp_vertices = len(x)
+            if temp_vertices == 3:
+                cara1 = x[0][0] - 1
+                cara2 = x[1][0] - 1
+                cara3 = x[2][0] - 1
+
+                a = self.glTransform(model.vertices[cara1], translation, scale)
+                b = self.glTransform(model.vertices[cara2], translation, scale)
+                c = self.glTransform(model.vertices[cara3], translation, scale)
                 
+                norm = glMatematica.Normalizar( glMatematica.ProdCruz( glMatematica.Resta(b,a) , glMatematica.Resta(c,a) ) )
+                intensidad = glMatematica.ProdPunto( norm, luz )
+                grises = round(255 * intensidad)
+
+                if grises < 0:
+                    continue
+
+                self.glTriangle(a, b, c, color( grises,grises,grises ))
+
+            if temp_vertices == 4:
+                cara1 = x[0][0] - 1
+                cara2 = x[1][0] - 1
+                cara3 = x[2][0] - 1
+                cara4 = x[3][0] - 1
+
+                a = self.glTransform(model.vertices[cara1], translation, scale)
+                b = self.glTransform(model.vertices[cara2], translation, scale)
+                c = self.glTransform(model.vertices[cara3], translation, scale)
+                d = self.glTransform(model.vertices[cara4], translation, scale)
+
+                
+                norm = glMatematica.Normalizar( glMatematica.ProdCruz( glMatematica.Resta(a, b),  glMatematica.Resta(b, c) ) )
+                intensidad = glMatematica.ProdPunto( norm, luz )
+                grises = round(255 * intensidad)
+                if grises < 0:
+                    continue
+
+                self.glTriangle(a, b, c, color( grises,grises,grises ))
+                self.glTriangle(a, c, d, color( grises,grises,grises ))
 
 
     def glFinish(self,filename):
