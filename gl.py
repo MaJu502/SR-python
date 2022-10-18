@@ -1,11 +1,10 @@
 """
 Universidad del Valle de Guatemala 
-Autor: Marco Jurado 20308
-Creation Date: 7/7/22
-Last Update: 18/8/22
+@author Marco Jurado 20308
 """
+from collections import namedtuple
 import struct
-
+import glMatematica
 from object import Obj
 
 # char, word, double word #
@@ -23,24 +22,57 @@ def color(r,g,b):
 Black = color(0,0,0)
 White = color(1,1,1)
 
+
+# coordenadas baricentricas #
+def coordenadasbaricentricas(A,B,C,k):
+    areabc = (B.y - C.y) * (k.x - C.x) + (C.x - B.x) * (k.y - C.y)
+    areaac = (C.y - A.y) * (k.x - C.x) + (A.x - C.x) * (k.y - C.y)
+    areaabc = (B.y - C.y) * (A.x - C.x) + (C.x - B.x) * (A.y - C.y)
+
+    try:
+        #puntos u v w de las coordenadas baricentricas
+        u = areabc / areaabc
+        v = areaac / areaabc
+        w = 1 - u - v
+    except:
+        return -1, -1, -1
+    else:
+        return u, v, w
+
+V2 = namedtuple('Point2', ['x', 'y'])
+V3 = namedtuple('Point3', ['x', 'y', 'z'])
+V4 = namedtuple('Point4', ['x', 'y', 'z', 'w'])
+
+
 # render #
 
 class Render(object):
     def __init__(self,width,height):
         self.colorBack = Black #color con el que se inicia el fondo en glClearColor
+
         self.width = width
         self.height = height
+
         self.viewX = 0
         self.viewY = 0
+
         self.curr_color = White
+        self.curr_shade = None
+
         self.pixels = []
+
         self.glClearColor(0,0,0)
         self.glViewPort(0, 0, self.width, self.height)
+        self.glClear()
         
 
     def glClear(self):
         self.pixels = [
             [self.colorBack for x in range (self.width)] for y in range (self.height)
+        ]
+
+        self.zBuffer = [
+            [float('inf') for y in range(self.height)] for x in range(self.width)
         ]
     
     def glClearColor(self, r, g, b):
@@ -58,7 +90,7 @@ class Render(object):
         #color con el que funciona vertex
         self.curr_color = color(r,g,b)
 
-    def glViewPort(self, x, y, w, h, colo=White):
+    def glViewPort(self, x, y, w, h):
         #crea un viewport con los datos ingresados
         self.viewX = x
         self.viewY = y
@@ -68,7 +100,7 @@ class Render(object):
         for x in range(self.viewX, self.viewX + self.VPW):
             for y in range(self.viewY, self.viewY + self.VPH):
                 if (0 <= x < self.width) and (0 <= y < self.height):
-                    self.pixels[x][y] = colo or self.curr_color 
+                    self.pixels[x][y] = self.curr_color 
 
     def glVertex(self, ingx, ingy, optColor=None):
         if ingx > 1 or ingx < -1 or ingy > 1 or ingy < -1:
@@ -176,6 +208,91 @@ class Render(object):
                 #recorre la pantalla en el eje y
                 if self.EvenOdd(y,x,polygon):
                     self.glVertex(x,y,optColor)
+
+    def flatbottom(self,A,B,C,clr=None):
+        " basado en explicación por Ing. Carlos "
+        try:
+            mBA = (B.x - A.x) / (B.y - A.y)
+            mCA = (C.x - A.x) / (C.y - A.y)
+        except:
+            pass
+        else:
+            x0 = B.x
+            x1 = C.x
+            for y in range(int(B.y), int(A.y)):
+                self.glLine(V2(x0, y), V2(x1, y), clr)
+                x0 += mBA
+                x1 += mCA
+
+    def flatTop(self,A, B, C, clr=None):
+        " basado en explicación por Ing. Carlos "
+        try:
+            mCA = (C.x - A.x) / (C.y - A.y)
+            mCB = (C.x - B.x) / (C.y - B.y)
+        except:
+            pass
+        else:
+            x0 = A.x
+            x1 = B.x
+            for y in range(int(A.y), int(C.y), -1):
+                self.glLine(V2(x0, y), V2(x1, y), clr)
+                x0 -= mCA
+                x1 -= mCB
+
+    def glTriangle(self, A,B,C, clr=None):
+        " basado en explicación por Ing. Carlos "
+        if A.y < B.y:
+            A, B = B, A
+        if A.y < C.y:
+            A, C = C, A
+        if B.y < C.y:
+            B, C = C, B
+
+        self.glLine(A, B, clr)
+        self.glLine(B, C, clr)
+        self.glLine(C, A, clr)
+
+        if B.y == C.y:
+            #Cuando el triangulo tiene flat bottom
+            self.flatBottom(A, B, C)
+        elif A.y == B.y:
+            #Cuando el triangulo tiene flat top
+            self.flatTop(A, B, C)
+        else:
+            temp = V2(A.x + ((B.y - A.y) / (C.y - A.y)) * (C.x - A.x), B.y)
+            self.flatBottom(A, B, temp)
+            self.flatTop(B, temp, C)
+
+    
+    def glTriangleShading(self, A,B,C, cord=(), normal=(), clr=None):
+        #se definen los minimos y maximos
+        minimoX = round(min(A.x, B.x, C.x))
+        minimoY = round(min(A.y, B.y, C.y))
+
+        maximoX = round(max(A.x, B.x, C.x))
+        maximoY = round(max(A.y, B.y, C.y))
+
+        #la normal del triangulo normalizada
+        TNormal =  glMatematica.Normalizar(glMatematica.ProdCruz( glMatematica.Resta( B,A ), glMatematica.Resta( C,A ) ))
+
+        #con la normal del triangulo y generando las coordenadas baricentricas se puede generar el flat shade
+        for i in range(minimoX, maximoY + 1):
+            for j in range(minimoY, maximoX + 1):
+                #dentro de los rangos de minimos y maximos
+                u,v,w = coordenadasbaricentricas(A,B,C, V2(i,j)) #se generarn coordenadas 
+
+                if u >= 0 and v >= 0 and w >= 0:
+                    #si las coordenadas son mayor a 0
+                    temp = A.temp * u + B.temp * v + C.temp * w 
+                    if i >= 0 and i < self.width and j >= 0 and j < self.height:
+                        if temp < self.zBuffer[i][j]:
+                            self.zBuffer[i][j] = temp
+                            if self.curr_shade:
+                                r,g,b = self.curr_shade( self, coordenadasbaricentricas(u,v,w), optColor= clr or self.curr_color, cordenada = cord, N=normal, TNormal = TNormal)
+                                self.glVertex(i,j,color(r,g,b))
+                            else: 
+                                self.glVertex(i,j,clr)
+
 
 
     def LoadModel(self,filename,translation,scale,cord):
