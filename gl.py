@@ -72,7 +72,7 @@ class Render(object):
         ]
 
         self.zbuffer = [
-            [-float('inf') for x in range(self.width)] for y in range(self.height)
+            [-float('900') for x in range(self.width)] for y in range(self.height)
         ]
     
     def glClearColor(self, r, g, b):
@@ -338,5 +338,42 @@ class Render(object):
         for x in range(self.height):
             for y in range(self.width):
                 op.write(self.pixels[x][y])
+
+        op.close()
+
+    def glFinishZBuffer(self,filename):
+        op = open(filename, 'bw')
+
+        #Header
+        op.write(ch('B'))
+        op.write(ch('M'))
+        op.write(dwrd( 14 + 40 + (self.width * self.height * 3)))
+        op.write(dwrd(0))
+        op.write(dwrd(14 + 40))
+
+        #Image
+        op.write(dwrd(40))
+        op.write(dwrd(self.width))
+        op.write(dwrd(self.height))
+        op.write(wrd(1))
+        op.write(wrd(24))
+        op.write(dwrd(0))
+        op.write(dwrd(self.width * self.height * 3)) #screen size
+        op.write(dwrd(0))
+        op.write(dwrd(0))
+        op.write(dwrd(0))
+        op.write(dwrd(0))
+
+        #Color/Pixel data
+        for x in range(self.height):
+            for y in range(self.width):
+                temp = self.zbuffer[y][x]
+                temp = int(temp)
+                if temp < 0:
+                    temp = 0
+                if temp > 255:
+                    temp = 255
+                temp2 = color(temp,temp,temp)
+                op.write(temp2)
 
         op.close()
