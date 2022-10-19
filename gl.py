@@ -227,12 +227,11 @@ class Render(object):
                     continue
             
                 z = A.z * w + B.z * v + C.z * u
-                
-                print(' a ver beibi ---> ', z)
-                print(' a ver prro ---> ', self.zbuffer[x][y])
-                if z > self.zbuffer[x][y]:
-                    self.glVertex(x, y, clr)
-                    self.zbuffer[x][y] = z
+
+                if x > 0 and x < len(self.zbuffer) and y > 0 and y < len(self.zbuffer[0]):
+                    if z > self.zbuffer[x][y]:
+                        self.glVertex(x, y, clr)
+                        self.zbuffer[x][y] = z
 
     
     def glTriangleShading(self, A,B,C, cord=(), normal=(), clr=None):
