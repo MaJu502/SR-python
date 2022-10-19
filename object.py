@@ -1,7 +1,10 @@
 #cargar archivos obj
 from re import X
 import struct
-from gl import color
+# from gl import color
+
+def color(r, g, b):
+    return bytes([b, g, r])
 
 # objetos #
 class Obj(object):
@@ -33,7 +36,7 @@ class Obj(object):
 
                 case'vt' :
                     #vt
-                    vt = [int(x) for x in value.split(' ')]
+                    vt = [int(float(x)) for x in value.split(' ')]
                     self.vertices.append(vt)
                     """vt = value.strip().split(' ')
                     for i in range(len(vt)):

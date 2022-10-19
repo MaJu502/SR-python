@@ -19,6 +19,7 @@ def dwrd(x):
 def color(r,g,b):
     # number between 0 and 255 for each input
     return bytes([b, g, r])
+
 Black = color(0,0,0)
 White = color(1,1,1)
 
@@ -217,7 +218,7 @@ class Render(object):
         )
 
 
-    def glTriangle(self, A,B,C, clr=None):
+    def glTriangle(self, A,B,C, clr=None,textureP=None,cordenadasTextura=(),intensidad=1):
         minimo, maximo = glMatematica.Bounding(A, B, C)
 
         for x in range(minimo.x, maximo.x + 1):
@@ -226,6 +227,14 @@ class Render(object):
                 if w < 0 or v < 0 or u < 0:  # 0 is actually a valid value! (it is on the edge)
                     continue
             
+                # ahora se cargan las texturas con las coordenadas y la intensidad correspondiente
+                if textureP:
+                    # si tiene texturas
+                    cordA, cordB, cordC = cordenadasTextura
+                    tempX = cordA.x * w + cordB.x * v + cordC.x *u
+                    tempY = cordA.y * w + cordB.y * v + cordC.y *u
+                    clr = textureP.get_color(tempX,tempY, intensidad) # se modifica el color a pintar para ser el correspondiente a la textura
+
                 z = A.z * w + B.z * v + C.z * u
 
                 if x > 0 and x < len(self.zbuffer) and y > 0 and y < len(self.zbuffer[0]):
@@ -265,7 +274,8 @@ class Render(object):
 
 
 
-    def LoadModel(self,filename,translation=(0, 0, 0),scale=(1, 1, 1)):
+    def LoadModel(self,filename,translation=(0, 0, 0),scale=(1, 1, 1), textureP=None):
+        # cargar modelo con texturas
         model = Obj(filename)
         luz = V3(0,0,1)
         for x in model.faces:
@@ -284,10 +294,21 @@ class Render(object):
                 intensidad = glMatematica.ProdPunto( norm, luz )
                 grises = round(255 * intensidad)
 
-                if grises < 0:
-                    continue
+                if not textureP:
+                    # si el modelo no cuenta con texturas
+                    if grises < 0:
+                        continue
 
-                self.glTriangle(a, b, c, color( grises,grises,grises ))
+                    self.glTriangle(a, b, c, color( grises,grises,grises ))
+                
+                else: 
+                    # si tiene texturas entonces buscamos A B C de las texturas para los triangulos
+                    Textura_A = V3(*model.vtvertex[(x[0][1] - 1)])
+                    Textura_B = V3(*model.vtvertex[(x[1][1] - 1)])
+                    Textura_C = V3(*model.vtvertex[(x[2][1] - 1)])
+
+                    #ahora se dibuja el triangulo
+                    self.glTriangle(a,b,c,textureP=textureP, cordenadasTextura=(Textura_A, Textura_B, Textura_C), intensidad=intensidad)
 
             if temp_vertices == 4:
                 cara1 = x[0][0] - 1
@@ -304,11 +325,25 @@ class Render(object):
                 norm = glMatematica.Normalizar( glMatematica.ProdCruz( glMatematica.Resta(a, b),  glMatematica.Resta(b, c) ) )
                 intensidad = glMatematica.ProdPunto( norm, luz )
                 grises = round(255 * intensidad)
-                if grises < 0:
-                    continue
 
-                self.glTriangle(a, b, c, color( grises,grises,grises ))
-                self.glTriangle(a, c, d, color( grises,grises,grises ))
+                if not textureP:
+                    # si el modelo no cuenta con texturas
+                    if grises < 0:
+                        continue
+
+                    self.glTriangle(a, b, c, color( grises,grises,grises ))
+                    self.glTriangle(a, c, d, color( grises,grises,grises ))
+                
+                else: 
+                    # si tiene texturas entonces buscamos A B C de las texturas para los triangulos
+                    Textura_A = V3(*model.vtvertex[(x[0][1] - 1)])
+                    Textura_B = V3(*model.vtvertex[(x[1][1] - 1)])
+                    Textura_C = V3(*model.vtvertex[(x[2][1] - 1)])
+                    Textura_D = V3(*model.vtvertex[(x[3][1] - 1)])
+
+                    #ahora se dibuja el triangulo
+                    self.glTriangle(a,b,c,textureP=textureP, cordenadasTextura=(Textura_A, Textura_B, Textura_C), intensidad=intensidad)
+                    self.glTriangle(a,c,d,textureP=textureP, cordenadasTextura=(Textura_A, Textura_C, Textura_D), intensidad=intensidad)
 
 
     def glFinish(self,filename):
