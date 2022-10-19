@@ -1,11 +1,10 @@
 """
 Universidad del Valle de Guatemala 
-Autor: Marco Jurado 20308
-Creation Date: 7/7/22
-Last Update: 18/8/22
+@author Marco Jurado 20308
 """
+from collections import namedtuple
 import struct
-
+import glMatematica
 from object import Obj
 
 # char, word, double word #
@@ -19,28 +18,61 @@ def dwrd(x):
 # colors #
 def color(r,g,b):
     # number between 0 and 255 for each input
-    return bytes([int(b * 255), int(g * 255), int(r * 255)])
+    return bytes([b, g, r])
 Black = color(0,0,0)
 White = color(1,1,1)
+
+
+# coordenadas baricentricas #
+def coordenadasbaricentricas(A,B,C,k):
+    lasbaricentricas = glMatematica.ProdCruz(
+        V3(C.x - A.x, B.x - A.x, A.x - k.x), 
+        V3(C.y - A.y, B.y - A.y, A.y - k.y)
+    )
+
+    if abs(lasbaricentricas[2]) < 1:
+        return -1, -1, -1
+
+    return (
+        1 - (lasbaricentricas[0] + lasbaricentricas[1]) / lasbaricentricas[2], 
+        lasbaricentricas[1] / lasbaricentricas[2], 
+        lasbaricentricas[0] / lasbaricentricas[2]
+    )
+
+V2 = namedtuple('Point2', ['x', 'y'])
+V3 = namedtuple('Point3', ['x', 'y', 'z'])
+V4 = namedtuple('Point4', ['x', 'y', 'z', 'w'])
+
 
 # render #
 
 class Render(object):
     def __init__(self,width,height):
         self.colorBack = Black #color con el que se inicia el fondo en glClearColor
+
         self.width = width
         self.height = height
+
         self.viewX = 0
         self.viewY = 0
+
         self.curr_color = White
+        self.curr_shade = None
+
         self.pixels = []
+
         self.glClearColor(0,0,0)
         self.glViewPort(0, 0, self.width, self.height)
+        self.glClear()
         
 
     def glClear(self):
         self.pixels = [
             [self.colorBack for x in range (self.width)] for y in range (self.height)
+        ]
+
+        self.zbuffer = [
+            [-float('inf') for x in range(self.width)] for y in range(self.height)
         ]
     
     def glClearColor(self, r, g, b):
@@ -58,7 +90,7 @@ class Render(object):
         #color con el que funciona vertex
         self.curr_color = color(r,g,b)
 
-    def glViewPort(self, x, y, w, h, colo=White):
+    def glViewPort(self, x, y, w, h):
         #crea un viewport con los datos ingresados
         self.viewX = x
         self.viewY = y
@@ -68,15 +100,14 @@ class Render(object):
         for x in range(self.viewX, self.viewX + self.VPW):
             for y in range(self.viewY, self.viewY + self.VPH):
                 if (0 <= x < self.width) and (0 <= y < self.height):
-                    self.pixels[x][y] = colo or self.curr_color 
+                    self.pixels[x][y] = self.curr_color 
 
     def glVertex(self, ingx, ingy, optColor=None):
-        if ingx > 1 or ingx < -1 or ingy > 1 or ingy < -1:
-            self.pixels[ingx][ingy] = self.curr_color
-        else:
-            x = int((ingx + 1) * (self.VPW / 2) + self.viewX)
-            y = int((ingy + 1) * (self.VPH / 2) + self.viewY)
-            self.pixels[x][y] = optColor or self.curr_color
+        try:
+            self.pixels[ingy][ingx] = optColor or self.curr_color
+        except:
+        # To avoid index out of range exceptions
+            pass
 
     def glLine(self,x0,y0,x1,y1, optColor=None):
         x0,y0 = y0,x0
@@ -177,23 +208,107 @@ class Render(object):
                 if self.EvenOdd(y,x,polygon):
                     self.glVertex(x,y,optColor)
 
+    def glTransform(self, vertex, translate=(0, 0, 0), scale=(1, 1, 1)):
+    # returns a vertex 3, translated and transformed
+        return V3(
+        round((vertex[0] + translate[0]) * scale[0]),
+        round((vertex[1] + translate[1]) * scale[1]),
+        round((vertex[2] + translate[2]) * scale[2])
+        )
 
-    def LoadModel(self,filename,translation,scale,cord):
-        objs = Obj(filename)
-        for x in objs.faces:
+
+    def glTriangle(self, A,B,C, clr=None):
+        minimo, maximo = glMatematica.Bounding(A, B, C)
+
+        for x in range(minimo.x, maximo.x + 1):
+            for y in range(minimo.y, maximo.y + 1):
+                w, v, u = coordenadasbaricentricas(A, B, C, V2(x, y))
+                if w < 0 or v < 0 or u < 0:  # 0 is actually a valid value! (it is on the edge)
+                    continue
+            
+                z = A.z * w + B.z * v + C.z * u
+
+                if x > 0 and x < len(self.zbuffer) and y > 0 and y < len(self.zbuffer[0]):
+                    if z > self.zbuffer[x][y]:
+                        self.glVertex(x, y, clr)
+                        self.zbuffer[x][y] = z
+
+    
+    def glTriangleShading(self, A,B,C, cord=(), normal=(), clr=None):
+        #se definen los minimos y maximos
+        minimoX = round(min(A.x, B.x, C.x))
+        minimoY = round(min(A.y, B.y, C.y))
+
+        maximoX = round(max(A.x, B.x, C.x))
+        maximoY = round(max(A.y, B.y, C.y))
+
+        #la normal del triangulo normalizada
+        TNormal =  glMatematica.Normalizar(glMatematica.ProdCruz( glMatematica.Resta( B,A ), glMatematica.Resta( C,A ) ))
+
+        #con la normal del triangulo y generando las coordenadas baricentricas se puede generar el flat shade
+        for i in range(minimoX, maximoY + 1):
+            for j in range(minimoY, maximoX + 1):
+                #dentro de los rangos de minimos y maximos
+                u,v,w = coordenadasbaricentricas(A,B,C, V2(i,j)) #se generarn coordenadas 
+
+                if u >= 0 and v >= 0 and w >= 0:
+                    #si las coordenadas son mayor a 0
+                    temp = A.temp * u + B.temp * v + C.temp * w 
+                    if i >= 0 and i < self.width and j >= 0 and j < self.height:
+                        if temp < self.zBuffer[i][j]:
+                            self.zBuffer[i][j] = temp
+                            if self.curr_shade:
+                                r,g,b = self.curr_shade( self, coordenadasbaricentricas(u,v,w), optColor= clr or self.curr_color, cordenada = cord, N=normal, TNormal = TNormal)
+                                self.glVertex(i,j,color(r,g,b))
+                            else: 
+                                self.glVertex(i,j,clr)
+
+
+
+    def LoadModel(self,filename,translation=(0, 0, 0),scale=(1, 1, 1)):
+        model = Obj(filename)
+        luz = V3(0,0,1)
+        for x in model.faces:
             #cada cara
-            temp_vertices_cara = [] #los vertices que conforman la cara
-            for y in x:
-                #cada coordenada dentro de la cara seleccionada
-                temp_vertice_dibujar = [
-                    int(round((objs.vertices[y[0] - 1])[cord[0]] * scale[0]) + translation[0]),
-                    int(round((objs.vertices[y[0] - 1])[cord[1]] * scale[1]) + translation[1])
-                ]
-                for temp in temp_vertice_dibujar:
-                    temp = int(temp)
-                temp_vertices_cara.append(temp_vertice_dibujar)
-            self.glDrawFig(temp_vertices_cara)
+            temp_vertices = len(x)
+            if temp_vertices == 3:
+                cara1 = x[0][0] - 1
+                cara2 = x[1][0] - 1
+                cara3 = x[2][0] - 1
+
+                a = self.glTransform(model.vertices[cara1], translation, scale)
+                b = self.glTransform(model.vertices[cara2], translation, scale)
+                c = self.glTransform(model.vertices[cara3], translation, scale)
                 
+                norm = glMatematica.Normalizar( glMatematica.ProdCruz( glMatematica.Resta(b,a) , glMatematica.Resta(c,a) ) )
+                intensidad = glMatematica.ProdPunto( norm, luz )
+                grises = round(255 * intensidad)
+
+                if grises < 0:
+                    continue
+
+                self.glTriangle(a, b, c, color( grises,grises,grises ))
+
+            if temp_vertices == 4:
+                cara1 = x[0][0] - 1
+                cara2 = x[1][0] - 1
+                cara3 = x[2][0] - 1
+                cara4 = x[3][0] - 1
+
+                a = self.glTransform(model.vertices[cara1], translation, scale)
+                b = self.glTransform(model.vertices[cara2], translation, scale)
+                c = self.glTransform(model.vertices[cara3], translation, scale)
+                d = self.glTransform(model.vertices[cara4], translation, scale)
+
+                
+                norm = glMatematica.Normalizar( glMatematica.ProdCruz( glMatematica.Resta(a, b),  glMatematica.Resta(b, c) ) )
+                intensidad = glMatematica.ProdPunto( norm, luz )
+                grises = round(255 * intensidad)
+                if grises < 0:
+                    continue
+
+                self.glTriangle(a, b, c, color( grises,grises,grises ))
+                self.glTriangle(a, c, d, color( grises,grises,grises ))
 
 
     def glFinish(self,filename):
