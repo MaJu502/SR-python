@@ -36,13 +36,15 @@ class Obj(object):
 
                 case'vt' :
                     #vt
-                    vt = [int(float(x)) for x in value.split(' ')]
+                    vt = [float(x) for x in value.split(' ')]
                     self.vertices.append(vt)
                     """vt = value.strip().split(' ')
                     for i in range(len(vt)):
                         vt[i] = int(float(vt[i]))"""
 
                     self.vtvertex.append(vt) #guarda el vertice #guarda la cara
+
+        #print(self.vtvertex)
 
 # texturas #
 class Texture(object):
@@ -76,6 +78,7 @@ class Texture(object):
     def get_color(self, tx, ty, intensity=1):
         x = int(tx * self.width)
         y = int(ty * self.height)
+
         # return self.pixels[y][x]
         try:
             b = round(self.pixels[y][x][0] * intensity)

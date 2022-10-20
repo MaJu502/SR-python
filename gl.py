@@ -6,6 +6,7 @@ from collections import namedtuple
 import struct
 import glMatematica
 from object import Obj
+from object import Texture
 
 # char, word, double word #
 def ch(x):
@@ -219,6 +220,10 @@ class Render(object):
 
 
     def glTriangle(self, A,B,C, clr=None,textureP=None,cordenadasTextura=(),intensidad=1):
+        #evita llamar la funcion en el caso que la intensidad sea negativa (parte que no recibe nada de luz del modelo)
+        if intensidad < 0:
+            return
+
         minimo, maximo = glMatematica.Bounding(A, B, C)
 
         for x in range(minimo.x, maximo.x + 1):
@@ -233,6 +238,9 @@ class Render(object):
                     cordA, cordB, cordC = cordenadasTextura
                     tempX = cordA.x * w + cordB.x * v + cordC.x *u
                     tempY = cordA.y * w + cordB.y * v + cordC.y *u
+
+                    
+
                     clr = textureP.get_color(tempX,tempY, intensidad) # se modifica el color a pintar para ser el correspondiente a la textura
 
                 z = A.z * w + B.z * v + C.z * u
@@ -243,7 +251,7 @@ class Render(object):
                         self.zbuffer[x][y] = z
 
     
-    def glTriangleShading(self, A,B,C, cord=(), normal=(), clr=None):
+    """def glTriangleShading(self, A,B,C, cord=(), normal=(), clr=None):
         #se definen los minimos y maximos
         minimoX = round(min(A.x, B.x, C.x))
         minimoY = round(min(A.y, B.y, C.y))
@@ -270,7 +278,7 @@ class Render(object):
                                 r,g,b = self.curr_shade( self, coordenadasbaricentricas(u,v,w), optColor= clr or self.curr_color, cordenada = cord, N=normal, TNormal = TNormal)
                                 self.glVertex(i,j,color(r,g,b))
                             else: 
-                                self.glVertex(i,j,clr)
+                                self.glVertex(i,j,clr)"""
 
 
 
@@ -303,9 +311,11 @@ class Render(object):
                 
                 else: 
                     # si tiene texturas entonces buscamos A B C de las texturas para los triangulos
-                    Textura_A = V3(*model.vtvertex[(x[0][1] - 1)])
-                    Textura_B = V3(*model.vtvertex[(x[1][1] - 1)])
-                    Textura_C = V3(*model.vtvertex[(x[2][1] - 1)])
+                    Textura_A = V2(*model.vtvertex[(x[0][1] - 1)])
+                    Textura_B = V2(*model.vtvertex[(x[1][1] - 1)])
+                    Textura_C = V2(*model.vtvertex[(x[2][1] - 1)])
+
+                    print('hola', Textura_A,Textura_B,Textura_C)
 
                     #ahora se dibuja el triangulo
                     self.glTriangle(a,b,c,textureP=textureP, cordenadasTextura=(Textura_A, Textura_B, Textura_C), intensidad=intensidad)
@@ -336,10 +346,12 @@ class Render(object):
                 
                 else: 
                     # si tiene texturas entonces buscamos A B C de las texturas para los triangulos
-                    Textura_A = V3(*model.vtvertex[(x[0][1] - 1)])
-                    Textura_B = V3(*model.vtvertex[(x[1][1] - 1)])
-                    Textura_C = V3(*model.vtvertex[(x[2][1] - 1)])
-                    Textura_D = V3(*model.vtvertex[(x[3][1] - 1)])
+                    Textura_A = V2(*model.vtvertex[(x[0][1] - 1)])
+                    Textura_B = V2(*model.vtvertex[(x[1][1] - 1)])
+                    Textura_C = V2(*model.vtvertex[(x[2][1] - 1)])
+                    Textura_D = V2(*model.vtvertex[(x[3][1] - 1)])
+
+                    #print('hola1', Textura_A,Textura_B,Textura_C, Textura_D)
 
                     #ahora se dibuja el triangulo
                     self.glTriangle(a,b,c,textureP=textureP, cordenadasTextura=(Textura_A, Textura_B, Textura_C), intensidad=intensidad)
