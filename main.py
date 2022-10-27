@@ -5,9 +5,6 @@ r = Render(600, 600)
 texture_pack = Texture('./plant.bmp')
 r.glClearColor(0, 0, 0)
 r.glClear()
-r.LoadModel('./plant.obj', (5,4,1), (50,50,50), textureP=texture_pack)
-r.glFinish("out.bmp")
-r.glFinishZBuffer("outZBUFFED.bmp")
 
 def menu():
     salir = False
@@ -22,14 +19,26 @@ def menu():
 
         opcion = input()
 
+        transform = (0,0,0)
+        scale = (0,0,0)
+        rotation = (0,0,0)
+
         if opcion == 1:
-            continue
+            r.LoadModel('./plant.obj', (5,4,1), (50,50,50), textureP=texture_pack)
+            r.glFinish("out.bmp")
+            r.glFinishZBuffer("outZBUFFED.bmp")
         elif opcion == 2:
-            continue
+            r.LoadModel('./plant.obj', (5,4,1), (50,50,50), textureP=texture_pack)
+            r.glFinish("out.bmp")
+            r.glFinishZBuffer("outZBUFFED.bmp")
         elif opcion == 3:
-            continue
+            r.LoadModel('./plant.obj', (5,4,1), (50,50,50), textureP=texture_pack)
+            r.glFinish("out.bmp")
+            r.glFinishZBuffer("outZBUFFED.bmp")
         elif opcion == 4:
-            continue
+            r.LoadModel('./plant.obj', (5,4,1), (50,50,50), textureP=texture_pack)
+            r.glFinish("out.bmp")
+            r.glFinishZBuffer("outZBUFFED.bmp")
         elif opcion == 5:
             salir = True
         else: 
