@@ -3,9 +3,19 @@ from object import Texture
 
 r = Render(600, 600)
 texture_pack = Texture('./plant.bmp')
+r.light = V3(0,0,1)
 r.glClearColor(0, 0, 0)
 r.glClear()
 
+r.lookAT(V3(1, 0, 5), V3(0, 0, 0), V3(0, 1, 0))
+
+
+r.load('./models/model.obj', translate=(0, 0, 0), scale=(1, 1, 1), rotate=(0, 0, 0))
+r.LoadModel('./plant.obj', (5,4,1), (50,50,50), (0,0,0), textureP=texture_pack)
+r.glFinish("out111.bmp")
+r.glFinishZBuffer("outZBUFFED111.bmp")
+
+"""
 def menu():
     salir = False
     while salir == False:
@@ -43,3 +53,4 @@ def menu():
             salir = True
         else: 
             print("opcion invalida porfavor intenta nuevamente")
+"""
