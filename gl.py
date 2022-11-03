@@ -336,11 +336,11 @@ class Render(object):
                     self.glTriangle(a,c,d,textureP=textureP, cordenadasTextura=(Textura_A, Textura_C, Textura_D), intensidad=intensidad)
     
     def lookAT(self, eye, center, up):
-        z = (glMatematica.Resta(eye,center)) * (1/glMatematica.largoVector())
-        x = (up * z) * (1/glMatematica.largoVector())
-        y = (z * x) * (1/glMatematica.largoVector())
+        z = ( glMatematica.Normalizar( glMatematica.Resta(eye,center) ) )
+        x = ( glMatematica.Normalizar( glMatematica.ProdCruz(up, z) ) )
+        y = ( glMatematica.Normalizar( glMatematica.ProdCruz(z,x) ) )
         self.loadViewMatrix(x, y, z, center)
-        self.loadProjectionMatrix(eye, center)
+        self.loadProjectionMatrix(-1/glMatematica.largoVector( glMatematica.Resta(eye,center) ))
         self.loadViewportMatrix()
 
     def loadViewMatrix(self, x, y, z, center):
