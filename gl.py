@@ -228,7 +228,7 @@ class Render(object):
 
 
     def glTriangle(self, A,B,C, clr=None,textureP=None,cordenadasTextura=(),intensidad=1):
-        print('hola')
+        print('hola  >>> ', (A,B,C))
         minimo, maximo = glMatematica.Bounding(A, B, C)
         #se debe de definir una nueva intensidad con el movimiento de las camaras
         intensidad = glMatematica.ProdPunto(glMatematica.Normalizar( glMatematica.ProdCruz(glMatematica.Resta(B,A), glMatematica.Resta(C,A))), self.light)
