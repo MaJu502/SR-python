@@ -72,3 +72,5 @@ def multiplicarMatriz44(a,b):
                 else:
                     "caso base"
                     retorno[i][x] += a[i][y] * b[y][x]
+
+    return retorno
