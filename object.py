@@ -37,7 +37,6 @@ class Obj(object):
                 case'vt' :
                     #vt
                     vt = [float(x) for x in value.split(' ')]
-                    self.vertices.append(vt)
                     """vt = value.strip().split(' ')
                     for i in range(len(vt)):
                         vt[i] = int(float(vt[i]))"""
