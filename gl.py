@@ -425,6 +425,9 @@ class Render(object):
         self.Model = glMatematica.multiplicarMatriz44(translation_matrix, glMatematica.multiplicarMatriz44(rotation_matrix, scale_matrix))
 
     def transformar(self, v):
+
+        print('la v o no la v  > ', v)
+
         tempVertices = [v[0] , v[1], v[2], 1]
         "sustituyendo el uso de numpy para multiplicar estas matrices se reailza lo siguiente"
         temp1 = glMatematica.multiplicarMatriz44(self.Model, tempVertices)
@@ -438,6 +441,10 @@ class Render(object):
             tranformed_vertex.append(i[0])
 
         tranformed_vertex = [(tranformed_vertex[0]/tranformed_vertex[3]), (tranformed_vertex[1]/tranformed_vertex[3]), (tranformed_vertex[2]/tranformed_vertex[3])]
+
+        
+        print('la v o no la beibi  > ', tranformed_vertex)
+
         return V3(*tranformed_vertex)
 
 
