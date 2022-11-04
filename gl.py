@@ -245,29 +245,17 @@ class Render(object):
 
     def glTriangle(self, A,B,C, clr=None,textureP=None,cordenadasTextura=(),intensidad=1):
         
-        """print('****************************')
-        print('la A antes  > ', A)
-
-
-        A = self.rounding(A)
-        B = self.rounding(B)
-        C = self.rounding(C)
-
-        print('la A despues  > ', A)"""
-
         minimo, maximo = glMatematica.Bounding(A, B, C)
+
         #se debe de definir una nueva intensidad con el movimiento de las camaras
         intensidad = glMatematica.ProdPunto(glMatematica.Normalizar( glMatematica.ProdCruz(glMatematica.Resta(B,A), glMatematica.Resta(C,A))), self.light)
 
         #evita llamar la funcion en el caso que la intensidad sea negativa (parte que no recibe nada de luz del modelo)
         if intensidad < 0:
             return
-
-        print('xd  > ', minimo.x)
-        print('xdddddd  > ', minimo.y)
         
-        for x in range(minimo.x, maximo.x + 1):
-            for y in range(minimo.y, maximo.y + 1):
+        for x in range(round(minimo.x), round(maximo.x) + 1):
+            for y in range(round(minimo.y), round(maximo.y) + 1):
                 w, v, u = coordenadasbaricentricas(A, B, C, V2(x, y))
                 if w < 0 or v < 0 or u < 0:  # 0 is actually a valid value! (it is on the edge)
                     continue
@@ -305,10 +293,6 @@ class Render(object):
                 cara2 = x[1][0] - 1
                 cara3 = x[2][0] - 1
 
-                print('cara1  >>>> ', cara1)
-                print('cara2  >>>> ', cara2)
-                print('cara3  >>>> ', cara3)
-
                 a = self.transformar(model.vertices[cara1])
                 b = self.transformar(model.vertices[cara2])
                 c = self.transformar(model.vertices[cara3])
@@ -340,27 +324,10 @@ class Render(object):
                 cara4 = x[3][0] - 1
 
 
-                print('cara1  >>>> ', cara1)
-                print('cara2  >>>> ', cara2)
-                print('cara3  >>>> ', cara3)
-                print('cara4  >>>> ', cara4)
-
-
                 a = self.transformar(model.vertices[cara1])
                 b = self.transformar(model.vertices[cara2])
                 c = self.transformar(model.vertices[cara3])
                 d = self.transformar(model.vertices[cara4])
-
-                
-                print('la model verit a  >>>> ', model.vertices[cara1])
-                print('la  model verit B  >>>> ', model.vertices[cara2])
-                print('la model verit C  >>>> ', model.vertices[cara3])
-                print('la model verit D  >>>> ', model.vertices[cara4])
-
-                print('la AAA  >>>> ', a)
-                print('la BBB  >>>> ', b)
-                print('la CCC  >>>> ', c)
-                print('la DDD  >>>> ', d)
 
                 
                 norm = glMatematica.Normalizar( glMatematica.ProdCruz( glMatematica.Resta(a, b),  glMatematica.Resta(b, c) ) )
@@ -425,27 +392,23 @@ class Render(object):
         self.Model = glMatematica.multiplicarMatriz44(translation_matrix, glMatematica.multiplicarMatriz44(rotation_matrix, scale_matrix))
 
     def transformar(self, v):
-
-        print('la v o no la v  > ', v)
-
         tempVertices = [v[0] , v[1], v[2], 1]
+
         "sustituyendo el uso de numpy para multiplicar estas matrices se reailza lo siguiente"
-        temp1 = glMatematica.multiplicarMatriz44(self.Model, tempVertices)
-        temp2 = glMatematica.multiplicarMatriz44(self.View, temp1)
-        temp3 = glMatematica.multiplicarMatriz44(self.Projection, temp2)
-        temp4 = glMatematica.multiplicarMatriz44(self.Viewport, temp3)
 
-        tranformed_vertex = []
+        temp1 = glMatematica.multiplicarMatriz44(self.Viewport, self.Projection)
+        temp2 = glMatematica.multiplicarMatriz44(temp1, self.View)
+        temp3 = glMatematica.multiplicarMatriz44(temp2, self.Model)
+        temp4 = glMatematica.multiplicarMatriz44(temp3, [ [x] for x in tempVertices ])
+        temp4 = [[i[0] for i in temp4]]
 
-        for i in temp2:
-            tranformed_vertex.append(i[0])
+        tranformed_vertex = temp4[0]
 
-        tranformed_vertex = [(tranformed_vertex[0]/tranformed_vertex[3]), 
+        tranformed_vertex = [
+        (tranformed_vertex[0]/tranformed_vertex[3]), 
         (tranformed_vertex[1]/tranformed_vertex[3]), 
-        (tranformed_vertex[2]/tranformed_vertex[3])]
-
-        
-        print('la v o no la beibi  > ', tranformed_vertex)
+        (tranformed_vertex[2]/tranformed_vertex[3])
+        ]
 
         return V3(*tranformed_vertex)
 
@@ -478,6 +441,7 @@ class Render(object):
             for y in range(self.width):
                 op.write(self.pixels[x][y])
 
+        print(' DIOOOOOOOOOOS ESTAAAAAAA AQUIIIIIIII...')
         op.close()
 
     def glFinishZBuffer(self,filename):

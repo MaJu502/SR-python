@@ -6,6 +6,8 @@ necesaria para operar vectores y demás.areaac
 """
 import math 
 from collections import namedtuple
+from functools import reduce
+
 V2 = namedtuple('Point2', ['x', 'y'])
 V3 = namedtuple('Point3', ['x', 'y', 'z'])
 
@@ -58,9 +60,9 @@ def multiplicarMatriz44(a,b):
 
     for i in range(len(a)):
         "cada fila de la matriz a"
-        for x in range(len(b)):
+        for x in range(len(b[0])):
             "cada fila de la matriz b"
-            for y in range(len(b)):
+            for y in range(len(a[0])):
                 """por cada fila de la matriz a se toma la fila de la matriz b y se realiza
                 a continuación cada fila de la matriz b con todas las filas de la matriz b"""
                 if isinstance(b[0], int) or isinstance(b[0], float):

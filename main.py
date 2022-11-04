@@ -1,14 +1,14 @@
 from gl import *
 from object import Texture
 
-r = Render(600, 600)
+r = Render(800, 800)
 texture_pack = Texture('./plant.bmp')
 r.light = V3(0,0,1)
 r.glClearColor(0, 0, 0)
 r.glClear()
 
-r.lookAT(V3(1, 0, 5), V3(0, 0, 0), V3(0, 1, 0))
-r.LoadModel('./plant.obj', (5,4,1), (50,50,50), (0,0,0), textureP=texture_pack)
+r.lookAT(V3(0, 0, 1), V3(0, 0, 0), V3(0, 1, 0))
+r.LoadModel('./plant.obj', (0,-0.7,0), (0.2,0.2,0.2), (0,0,0), textureP=texture_pack)
 r.glFinish("out111.bmp")
 r.glFinishZBuffer("outZBUFFED111.bmp")
 
