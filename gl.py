@@ -440,7 +440,9 @@ class Render(object):
         for i in temp2:
             tranformed_vertex.append(i[0])
 
-        tranformed_vertex = [(tranformed_vertex[0]/tranformed_vertex[3]), (tranformed_vertex[1]/tranformed_vertex[3]), (tranformed_vertex[2]/tranformed_vertex[3])]
+        tranformed_vertex = [(tranformed_vertex[0]/tranformed_vertex[3]), 
+        (tranformed_vertex[1]/tranformed_vertex[3]), 
+        (tranformed_vertex[2]/tranformed_vertex[3])]
 
         
         print('la v o no la beibi  > ', tranformed_vertex)

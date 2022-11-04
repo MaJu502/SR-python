@@ -27,9 +27,6 @@ class Obj(object):
                 case 'v':
                     #vertice
                     vertex = [float(x) for x in value.split(' ')]
-
-                    print('la manita de dios  >>>>>>>>>> ', vertex)
-
                     self.vertices.append(vertex) #guarda el vertice
 
                 case'f' :
