@@ -227,8 +227,34 @@ class Render(object):
         )
 
 
+    """def rounding(self, x):
+        retorno = V3(0,0,0)
+
+        print('hey < ', x[0])
+
+        for i in x:
+            if i < 0:
+                i = 0
+                print(i)
+            else:
+                i = round(i)
+                print(i)
+        print('la xxxxxttttreme > ', x )
+        return x"""
+        
+
     def glTriangle(self, A,B,C, clr=None,textureP=None,cordenadasTextura=(),intensidad=1):
-        print('hola  >>> ', (A,B,C))
+        
+        """print('****************************')
+        print('la A antes  > ', A)
+
+
+        A = self.rounding(A)
+        B = self.rounding(B)
+        C = self.rounding(C)
+
+        print('la A despues  > ', A)"""
+
         minimo, maximo = glMatematica.Bounding(A, B, C)
         #se debe de definir una nueva intensidad con el movimiento de las camaras
         intensidad = glMatematica.ProdPunto(glMatematica.Normalizar( glMatematica.ProdCruz(glMatematica.Resta(B,A), glMatematica.Resta(C,A))), self.light)
@@ -279,6 +305,10 @@ class Render(object):
                 cara2 = x[1][0] - 1
                 cara3 = x[2][0] - 1
 
+                print('cara1  >>>> ', cara1)
+                print('cara2  >>>> ', cara2)
+                print('cara3  >>>> ', cara3)
+
                 a = self.transformar(model.vertices[cara1])
                 b = self.transformar(model.vertices[cara2])
                 c = self.transformar(model.vertices[cara3])
@@ -309,10 +339,28 @@ class Render(object):
                 cara3 = x[2][0] - 1
                 cara4 = x[3][0] - 1
 
+
+                print('cara1  >>>> ', cara1)
+                print('cara2  >>>> ', cara2)
+                print('cara3  >>>> ', cara3)
+                print('cara4  >>>> ', cara4)
+
+
                 a = self.transformar(model.vertices[cara1])
                 b = self.transformar(model.vertices[cara2])
                 c = self.transformar(model.vertices[cara3])
                 d = self.transformar(model.vertices[cara4])
+
+                
+                print('la model verit a  >>>> ', model.vertices[cara1])
+                print('la  model verit B  >>>> ', model.vertices[cara2])
+                print('la model verit C  >>>> ', model.vertices[cara3])
+                print('la model verit D  >>>> ', model.vertices[cara4])
+
+                print('la AAA  >>>> ', a)
+                print('la BBB  >>>> ', b)
+                print('la CCC  >>>> ', c)
+                print('la DDD  >>>> ', d)
 
                 
                 norm = glMatematica.Normalizar( glMatematica.ProdCruz( glMatematica.Resta(a, b),  glMatematica.Resta(b, c) ) )
