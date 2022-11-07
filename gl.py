@@ -9,6 +9,7 @@ import glMatematica
 from object import Obj
 from object import Texture
 from math import cos,sin
+from shader import *
 
 # char, word, double word #
 def ch(x):
@@ -307,6 +308,12 @@ class Render(object):
                         continue
 
                     self.glTriangle(a, b, c, color( grises,grises,grises ))
+                
+                if textureP == neptuno:
+                    #hace neptuno
+                    colorNep = neptuno()
+                    r,g,b = colorNep
+                    self.glTriangle(a,b,c,color(r,g,b))
                 
                 else: 
                     # si tiene texturas entonces buscamos A B C de las texturas para los triangulos
