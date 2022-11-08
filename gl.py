@@ -245,18 +245,28 @@ class Render(object):
                     continue
                     
                 # ahora se cargan las texturas con las coordenadas y la intensidad correspondiente
-                if textureP == 'neptuno':
+                if textureP == 'marte':
                     cordA, cordB, cordC = cordenadasTextura
                     tempX = cordA.x * w + cordB.x * v + cordC.x *u
                     tempY = cordA.y * w + cordB.y * v + cordC.y *u
 
-                    #hace neptuno
-                    colorNep = neptuno(y = y, cord_baricentricas = (w,u,v), luz= V3(0,0,1), normales=kwargs['normales'])
+                    #hace marte
+                    colorNep = marte(y = y,x = x , cord_baricentricas = (w,u,v), luz= V3(0,0,1), normales=kwargs['normales'])
                     if colorNep == (0,0,0):
                         r,g,b = grises, grises, grises
+                        """print(' ')
+                        print(' ')
+                        print(' ')
+                        print(' colorrrr gris   >  ', color(grises,grises,grises))
+                        print(' ')
+                        print(' ')
+                        print(' ')"""
+
                     else:
                         r,g,b = colorNep
-                        print(' entonces AAAAAAHUEVO es >> ', color(r,g,b))
+                        b = round(b * 255 * intensidad)
+                        g = round(g * 255 * intensidad)
+                        r = round(r * 255 * intensidad)
 
                     z = A.z * w + B.z * v + C.z * u
 
@@ -265,7 +275,7 @@ class Render(object):
                             self.glVertex(x, y, color(r,g,b))
                             self.zbuffer[x][y] = z
 
-                if textureP != 'neptuno':
+                if textureP != 'marte':
                     # si tiene texturas
                     cordA, cordB, cordC = cordenadasTextura
                     tempX = cordA.x * w + cordB.x * v + cordC.x *u
@@ -312,11 +322,11 @@ class Render(object):
 
                     self.glTriangle(a, b, c, color( grises,grises,grises ))
                 
-                if textureP == 'neptuno':
+                if textureP == 'marte':
                     Textura_A = V2(*model.vtvertex[(x[0][1] - 1)])
                     Textura_B = V2(*model.vtvertex[(x[1][1] - 1)])
                     Textura_C = V2(*model.vtvertex[(x[2][1] - 1)])
-                    self.glTriangle(a,b,c,textureP='neptuno', cordenadasTextura=(Textura_A, Textura_B, Textura_C), intensidad=intensidad , normales=norm)
+                    self.glTriangle(a,b,c,textureP='marte', cordenadasTextura=(Textura_A, Textura_B, Textura_C), intensidad=intensidad , normales=norm)
                 
                 else: 
                     # si tiene texturas entonces buscamos A B C de las texturas para los triangulos
@@ -352,14 +362,14 @@ class Render(object):
                     self.glTriangle(a, b, c, color( grises,grises,grises ))
                     self.glTriangle(a, c, d, color( grises,grises,grises ))
                 
-                if textureP == 'neptuno':
+                if textureP == 'marte':
                     Textura_A = V2(*model.vtvertex[(x[0][1] - 1)])
                     Textura_B = V2(*model.vtvertex[(x[1][1] - 1)])
                     Textura_C = V2(*model.vtvertex[(x[2][1] - 1)])
                     Textura_D = V2(*model.vtvertex[(x[3][1] - 1)])
 
-                    self.glTriangle(a,b,c,textureP='neptuno', cordenadasTextura=(Textura_A, Textura_B, Textura_C), intensidad=intensidad , normales=norm)
-                    self.glTriangle(a,c,d,textureP='neptuno', cordenadasTextura=(Textura_A, Textura_B, Textura_C), intensidad=intensidad , normales=norm)
+                    self.glTriangle(a,b,c,textureP='marte', cordenadasTextura=(Textura_A, Textura_B, Textura_C), intensidad=intensidad , normales=norm)
+                    self.glTriangle(a,c,d,textureP='marte', cordenadasTextura=(Textura_A, Textura_B, Textura_C), intensidad=intensidad , normales=norm)
                 
                 else: 
                     # si tiene texturas entonces buscamos A B C de las texturas para los triangulos
