@@ -84,8 +84,8 @@ class Texture(object):
             g = round(self.pixels[y][x][1] * intensity)
             r = round(self.pixels[y][x][2] * intensity)
         except:
-            b = 255 * intensity
-            g = 255 * intensity
-            r = 255 * intensity
+            b = round( 255 * intensity )
+            g = round( 255 * intensity )
+            r = round( 255 * intensity )
 
         return color(r,g,b)

@@ -3,116 +3,68 @@ from object import Texture
 from math import pi
 
 r = Render(800, 800)
-# --------------------------------------- log --------------------------------------
-texture_pack = Texture('./models/woodenlog.bmp')
+# --------------------------------------- chest --------------------------------------
+print('starting chest')
+texture_pack = Texture('./models/chest.bmp')
 r.light = V3(0,0,1)
 r.glClearColor(0, 0, 0)
 r.glClear()
-translation = (-0.6,-0.6,0)
+r.background('./models/background.bmp')
+translation = (0.6,-0.6,0)
 scale = (0.6,0.6,0.6)
-rotation = ( 0.1, 0, 0 )
+rotation = ( 2.5, 1, 3.1)
 
 r.lookAT(V3(0,5,5), V3(0,0,0), V3(0,1,0))
-r.LoadModel('./models/woodenlog.obj', translation, scale, rotation, textureP=texture_pack)
-print('done log')
+r.LoadModel('./models/chest.obj', translation, scale, rotation, textureP=texture_pack)
+print('done chest')
 
 # --------------------------------------- plant --------------------------------------
+print('starting plant')
 texture_pack = Texture('./models/plant.bmp')
 r.light = V3(0,0,1)
-translation = (-0.6,0.1,0.2)
-scale = (0.1,0.1,0.1)
-rotation = ( 0.1, 0, 0 )
+translation = (0.6,0.25,0.2)
+scale = (0.05,0.05,0.05)
+rotation = ( -0.8, 0, 0 )
 
 r.lookAT(V3(0,5,5), V3(0,0,0), V3(0,1,0))
 r.LoadModel('./models/plant.obj', translation, scale, rotation, textureP=texture_pack)
 print('done plant')
 
 # --------------------------------------- shoe --------------------------------------
+print('starting shoe')
 texture_pack = Texture('./models/shoe.bmp')
 r.light = V3(0,0,1)
-translation = (0,-0.5,0.2)
-scale = (0.05,0.05,0.05)
+translation = (-0.6,-0.4,0.2)
+scale = (0.03,0.03,0.03)
 rotation = ( -1.5, 0, 1 )
 
-r.lookAT(V3(0,5,5), V3(0,0,0), V3(0,1,0))
+r.lookAT(V3(0,0,5), V3(0,0,0), V3(0,1,0))
 r.LoadModel('./models/shoe.obj', translation, scale, rotation, textureP=texture_pack)
 print('done shoe')
 
+# --------------------------------------- poundcake --------------------------------------
+print('starting poundcake')
+texture_pack = Texture('./models/poundcake.bmp')
+r.light = V3(0,0,1)
+translation = (-0.2,-0.4,2)
+scale = (0.02,0.02,0.02)
+rotation = ( 2.5, 1.5, 0.7 )
 
+r.lookAT(V3(0,0,5), V3(0,0,0), V3(0,1,0))
+r.LoadModel('./models/poundcake.obj', translation, scale, rotation, textureP=texture_pack)
+print('done poundcake')
 
+# --------------------------------------- Shiba --------------------------------------
+print('starting Shiba')
+texture_pack = 'shiba'
+r.light = V3(0,0,1)
+translation = (0.2,-0.7,0)
+scale = (3,3,3)
+rotation = ( 0,-0.8,0 )
 
-
+r.lookAT(V3(0,0,5), V3(0,0,0), V3(0,1,0))
+r.LoadModel('./models/Shiba.obj', translation, scale, rotation, textureP=texture_pack)
+print('done Shiba')
 
 r.glFinish("Scene.bmp")
-"""r.glFinishZBuffer("Scenezbuf.bmp")"""
-
-"""
-def menu():
-    r = Render(800, 800)
-    texture_pack = Texture('./plant.bmp')
-    r.light = V3(0,0,1)
-    r.glClearColor(0, 0, 0)
-    r.glClear()
-
-    print('Bienvenido! selecciona una opción para comenzar')
-    salir = False
-    while salir == False:
-        print(' 1. Medium Shot ')
-        print(' 2. Low Angle ')
-        print(' 3. High Angle ')
-        print(' 4. Dutch Angle ')
-        print(' 5. Salir ')
-
-        opcion = input()
-
-        if opcion == '1':
-            #medium shot
-            translation = (0,-1.2,0)
-            scale = (0.15,0.15,0.15)
-            rotation = ( 0.1, 0, 0 )
-
-            r.lookAT(V3(0,0,5), V3(0,0,0), V3(0,1,0))
-            r.LoadModel('./plant.obj', translation, scale, rotation, textureP=texture_pack)
-            r.glFinish("MediumShot.bmp")
-            r.glFinishZBuffer("MediumShot_ZBuffer.bmp")
-
-        elif opcion == '2':
-            #low angle
-            translation = (0,-0.6,0)
-            scale = (0.16,0.16,0.16)
-            rotation = ( 0.1, 0, 0 )
-
-            r.lookAT(V3(0,-10,10), V3(0,0,0), V3(0,1,0))
-            r.LoadModel('./plant.obj', translation, scale, rotation, textureP=texture_pack)
-            r.glFinish("LowAngle.bmp")
-            r.glFinishZBuffer("LowAngle_ZBuffer.bmp")
-        elif opcion == '3':
-            #high angle
-            translation = (0,-0.6,0)
-            scale = (0.16,0.16,0.16)
-            rotation = ( 0.1, 0, 0 )
-
-            r.lookAT(V3(0,65,65), V3(0,0,0), V3(0,1,0))
-            r.LoadModel('./plant.obj', translation, scale, rotation, textureP=texture_pack)
-            r.glFinish("HighAngle.bmp")
-            r.glFinishZBuffer("HighAngle_ZBuffer.bmp")
-        
-        elif opcion == '4':
-            #dutch angle
-            translation = (0,-0.6,0)
-            scale = (0.16,0.16,0.16)
-            rotation = ( 0.1, 0, 0 )
-
-            r.lookAT(V3(0,-20,65), V3(0,0,0), V3(30,50,0))
-            r.LoadModel('./plant.obj', translation, scale, rotation, textureP=texture_pack)
-            r.glFinish("DutchAngle.bmp")
-            r.glFinishZBuffer("DutchAngle_ZBuffer.bmp")
-            
-        elif opcion == '5':
-            #salir
-            print('Gracias por utilizar el programa. Hasta pronto!')
-            salir = True
-        else:
-            print('ingresa una opcion valida')
-
-menu()"""
+r.glFinishZBuffer('ZBuffed_Scene.bmp')
