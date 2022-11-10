@@ -2,6 +2,51 @@ from gl import *
 from object import Texture
 from math import pi
 
+r = Render(800, 800)
+# --------------------------------------- log --------------------------------------
+texture_pack = Texture('./models/woodenlog.bmp')
+r.light = V3(0,0,1)
+r.glClearColor(0, 0, 0)
+r.glClear()
+translation = (-0.6,-0.6,0)
+scale = (0.6,0.6,0.6)
+rotation = ( 0.1, 0, 0 )
+
+r.lookAT(V3(0,5,5), V3(0,0,0), V3(0,1,0))
+r.LoadModel('./models/woodenlog.obj', translation, scale, rotation, textureP=texture_pack)
+print('done log')
+
+# --------------------------------------- plant --------------------------------------
+texture_pack = Texture('./models/plant.bmp')
+r.light = V3(0,0,1)
+translation = (-0.6,0.1,0.2)
+scale = (0.1,0.1,0.1)
+rotation = ( 0.1, 0, 0 )
+
+r.lookAT(V3(0,5,5), V3(0,0,0), V3(0,1,0))
+r.LoadModel('./models/plant.obj', translation, scale, rotation, textureP=texture_pack)
+print('done plant')
+
+# --------------------------------------- shoe --------------------------------------
+texture_pack = Texture('./models/shoe.bmp')
+r.light = V3(0,0,1)
+translation = (0,-0.5,0.2)
+scale = (0.05,0.05,0.05)
+rotation = ( -1.5, 0, 1 )
+
+r.lookAT(V3(0,5,5), V3(0,0,0), V3(0,1,0))
+r.LoadModel('./models/shoe.obj', translation, scale, rotation, textureP=texture_pack)
+print('done shoe')
+
+
+
+
+
+
+r.glFinish("Scene.bmp")
+"""r.glFinishZBuffer("Scenezbuf.bmp")"""
+
+"""
 def menu():
     r = Render(800, 800)
     texture_pack = Texture('./plant.bmp')
@@ -70,4 +115,4 @@ def menu():
         else:
             print('ingresa una opcion valida')
 
-menu()
+menu()"""
